@@ -120,7 +120,7 @@ class Simulator:
         if progress > 10.0 and not self.lap_started:
             self.lap_started = True
     
-        if progress <= 1.0 and self.lap_started and not self.lap_finished:
+        if progress <= 5.0 and self.lap_started and not self.lap_finished:
             self.lap_finished = True
             self.lap_time_elapsed = time() - self.lap_start_time
 
@@ -128,7 +128,7 @@ class Simulator:
             self.lap_time_elapsed = time() - self.lap_start_time
 
     def start(self):
-        # Run the simulation loop every 1 second.
+        # Run the simulation loop every 1 millisecond.
         self.timer = self.figure.canvas.new_timer(interval=1)
         self.timer.add_callback(self.run)
         self.lap_start_time = time()
