@@ -13,8 +13,8 @@ class S1:
 
     def __init__(self):
         self.base_velocity = 82.0  # m/s - slightly more conservative
-        self.lookahead_distance = 30  # index points - look further ahead
-        self.max_lateral_accel = 14.0  # m/s^2 (~1.3g) - more conservative
+        self.lookahead_distance = 35  # index points - look further ahead
+        self.max_lateral_accel = 15.0  # m/s^2 (~1.5g) - more conservative
 
     def step(self, state: np.ndarray, centerline: np.ndarray) -> float:
         """
@@ -63,9 +63,19 @@ class S1:
 
             max_curvature = max(max_curvature, weighted_curvature)
 
-        # Physics-based velocity limit for the tightest corner ahead
+        # Physics-based velocity limit with curvature-dependent lateral accel
         if max_curvature > 1e-4:
-            reference_velocity = np.sqrt(self.max_lateral_accel / max_curvature)
+            # Adaptive lateral acceleration based on curvature
+            if max_curvature < 0.008:
+                a_lat = 21.0
+            elif max_curvature < 0.020:
+                a_lat = 18.5
+            elif max_curvature < 0.035:
+                a_lat = 16.0
+            else:
+                a_lat = 14.0
+
+            reference_velocity = np.sqrt(a_lat / max_curvature)
         else:
             reference_velocity = self.base_velocity
 

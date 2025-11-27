@@ -24,9 +24,21 @@ class C1:
     ) -> float:
         """
         A PID controller, outputs an acceleration command to reach desired velocity
+        Uses adaptive gains based on speed and whether braking or accelerating
         """
         current_velocity = state[3]
         error = desired_velocity - current_velocity
+
+        # Speed-dependent proportional gain
+        if error < 0:  # Braking
+            if current_velocity < 50:
+                K_p = 4.0
+            elif current_velocity > 80:
+                K_p = 4.0
+            else:
+                K_p = 3.2 + ((current_velocity - 50) / 30) * 0.8
+        else:  # Accelerating
+            K_p = self.K_p
 
         # Integral term with anti-windup
         self.integral_error += error
@@ -36,8 +48,8 @@ class C1:
         derivative = error - self.prev_error
         self.prev_error = error
 
-        # PID formula
-        a = self.K_p * error + self.K_i * self.integral_error + self.K_d * derivative
+        # PID formula with adaptive Kp
+        a = K_p * error + self.K_i * self.integral_error + self.K_d * derivative
 
         max_acceleration = parameters[10]
         return np.clip(a, -max_acceleration, max_acceleration)
